@@ -3,7 +3,7 @@ import wandb
 import argparse
 from os.path import join, splitext
 
-from trainer import trainer
+from trainer import trainer_factory
 from config.config import cfg_parser
 from utils.utils import seed_everything
 from utils.wandb_utils import init_wandb
@@ -53,7 +53,7 @@ if __name__=="__main__":
     if args.wandb:
         init_wandb(cfg.copy(), args.mode)
     
-    pipeline = trainer.factory.create(cfg['model_cfg'].trainer_key, **cfg)
+    pipeline = trainer_factory.factory.create(cfg['model_cfg'].trainer_key, **cfg)
     pipeline.run()
     if args.wandb:
         wandb.finish()

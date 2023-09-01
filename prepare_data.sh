@@ -13,5 +13,5 @@ elif [ "$1" = "yale-b" ]; then
     wget http://vision.ucsd.edu/extyaleb/ExtendedYaleB.tar.bz2
     tar -xvf ExtendedYaleB.tar.bz2
     python split_yale_b.py
-
+fi
 cd ..

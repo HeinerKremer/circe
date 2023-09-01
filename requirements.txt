@@ -30,7 +30,6 @@ pathtools==0.1.2
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==9.2.0
-Pillow_SIMD==9.0.0.post1
 promise==2.3
 prompt_toolkit==3.0.30
 protobuf==3.20.1
