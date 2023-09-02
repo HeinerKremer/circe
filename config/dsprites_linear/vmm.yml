@@ -25,10 +25,10 @@ model:
   trainer_key: vmm
   modes:
     - train
-    - val
-    - val_ood
-    - test
-    - test_ood
+    #- val
+    #- val_ood
+    #- test
+    #- test_ood
   epochs: 200
   patience: 25
 

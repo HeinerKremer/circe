@@ -60,8 +60,8 @@ class CMR(BaseTrainer):
                 if self.model_cfg.model_key == 'regressor':
                     target_loss = F.mse_loss(y_, y)
                     moment_norm = self.estimator._calc_val_moment_violation([x, y], z)
-                    mmr = self.estimator._calc_val_mmr([x, y], z)
-                    hsic = self.estimator._calc_val_hsic([x, y], z)
+                    # mmr = self.estimator._calc_val_mmr([x, y], z)
+                    # hsic = self.estimator._calc_val_hsic([x, y], z)
                 elif self.model_cfg.model_key == 'classifier':
                     raise NotImplementedError('Classification not yet implemented.')
                     # label = batch['label']
@@ -81,15 +81,15 @@ class CMR(BaseTrainer):
 
             all_losses['target_loss'].append(target_loss.item())
             all_losses['moment_norm'].append(moment_norm)
-            all_losses['mmr'].append(mmr)
-            all_losses['hsic'].append(hsic)
+            # all_losses['mmr'].append(mmr)
+            # all_losses['hsic'].append(hsic)
             all_losses['cmr_obj'].append(cmr_obj)
 
         all_losses = utils.aggregate(all_losses)
         if self.exp_cfg.wandb:
             wandb_utils.log_epoch_summary(epochID, mode, all_losses)
 
-        return all_losses['total_loss']
+        return all_losses['target_loss']
 
 
 class CMRTrainerBuilder:
