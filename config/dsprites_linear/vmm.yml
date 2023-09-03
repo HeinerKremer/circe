@@ -26,14 +26,14 @@ model:
 
   trainer_config:
     default: False
-    reg_param: 1e-2
+    reg_param: 0.01
     dual_func_network_kwargs:
       layer_widths:
         - 50
         - 20
       activation: LeakyReLU
       normalized: True
-    pretrain": False
+    pretrain: False
     pretrain_dual: False
     early_stopping: False
     val_loss_func: hsic
@@ -41,26 +41,26 @@ model:
 
     theta_optim_args:
       optimizer:
-        OAdam":
-          lr: 5e-4
+        OAdam:
+          lr: 0.0005
           betas:
             - 0.5
             - 0.9
       scheduler: None
-      dual_optim_args:
-        optimizer:
-          OAdam":
-            lr: 1e-4
-            betas:
-              - 0.5
-              - 0.9
-        scheduler: None
-      gradient_descent_ascent: True
-      max_num_epochs: 200
-      batch_size: 1024
-      eval_freq: 100
-      max_no_improve: 500
-      burn_in_cycles: 10
+    dual_optim_args:
+      optimizer:
+        OAdam:
+          lr: 0.0001
+          betas:
+            - 0.5
+            - 0.9
+      scheduler: None
+    gradient_descent_ascent: True
+    max_num_epochs: 200
+    batch_size: 1024
+    eval_freq: 100
+    max_no_improve: 500
+    burn_in_cycles: 10
 
   modes:
     - train
