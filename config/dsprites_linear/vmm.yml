@@ -1,5 +1,5 @@
 experiment:
-  description: regression w/ VMM regularization
+  description: regression w/ VMM
   output_location: results/dsprites_linear/
   load: null
   resume: false
@@ -23,12 +23,51 @@ data:
 model:
   model_key: regressor
   trainer_key: vmm
+
+  trainer_config:
+    default: False
+    reg_param: 1e-2
+    dual_func_network_kwargs:
+      layer_widths:
+        - 50
+        - 20
+      activation: LeakyReLU
+      normalized: True
+    pretrain": False
+    pretrain_dual: False
+    early_stopping: False
+    val_loss_func: hsic
+    gpu: True
+
+    theta_optim_args:
+      optimizer:
+        OAdam":
+          lr: 5e-4
+          betas:
+            - 0.5
+            - 0.9
+      scheduler: None
+      dual_optim_args:
+        optimizer:
+          OAdam":
+            lr: 1e-4
+            betas:
+              - 0.5
+              - 0.9
+        scheduler: None
+      gradient_descent_ascent: True
+      max_num_epochs: 200
+      batch_size: 1024
+      eval_freq: 100
+      max_no_improve: 500
+      burn_in_cycles: 10
+
   modes:
     - train
-    #- val
-    #- val_ood
-    #- test
-    #- test_ood
+    - val
+    - val_ood
+    - test
+    - test_ood
   epochs: 200
   patience: 25
 
@@ -82,11 +121,11 @@ model:
           in_features: 64
           out_features: 1
 
-  optimizer:
-    AdamW:
-      lr: 0.0001
-      weight_decay: 0.01
-
-  scheduler:
-    CosineAnnealingLR:
-      T_max: 200
+#  optimizer:
+#    AdamW:
+#      lr: 0.0001
+#      weight_decay: 0.01
+#
+#  scheduler:
+#    CosineAnnealingLR:
+#      T_max: 200

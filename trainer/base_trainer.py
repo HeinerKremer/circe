@@ -47,20 +47,29 @@ class BaseTrainer(ABC):
             wandb.watch(self.model)
 
     def _setup_optimizers(self):
-        print("Initializing optimizers.")
-        params = list(self.model.parameters())
-        optimizer = self.model_cfg.optimizer
+        if hasattr(self.model_cfg, 'optimizer'):
+            print("Initializing optimizers.")
+            params = list(self.model.parameters())
+            optimizer = self.model_cfg.optimizer
 
-        self.opt = eval("optim.{}(params, **{})".format([*optimizer.keys()][0],
-                                                        [*optimizer.values()][0]))
-        if self.exp_cfg.resume:
-            saved_opt = torch.load(self.exp_cfg.load, map_location=self.device)['optimizer']
-            self.opt.load_state_dict(saved_opt)
+            self.opt = eval("optim.{}(params, **{})".format([*optimizer.keys()][0],
+                                                            [*optimizer.values()][0]))
+            if self.exp_cfg.resume:
+                saved_opt = torch.load(self.exp_cfg.load, map_location=self.device)['optimizer']
+                self.opt.load_state_dict(saved_opt)
+        else:
+            print('Using internal optimizers.')
 
     def _setup_schedulers(self):
-        scheduler = self.model_cfg.scheduler
-        self.scheduler = eval("optim.lr_scheduler.{}(self.opt, **{})".format([*scheduler.keys()][0],
+        if hasattr(self.model_cfg, 'scheduler'):
+            scheduler = self.model_cfg.scheduler
+            self.scheduler = eval("optim.lr_scheduler.{}(self.opt, **{})".format([*scheduler.keys()][0],
                                                                              [*scheduler.values()][0]))
+        else:
+            print('Using internal schedulers.')
+
+    def _scheduler_step(self):
+        self.scheduler.step()
 
     def _backprop(self, loss):
         self.opt.zero_grad()
@@ -102,7 +111,7 @@ class BaseTrainer(ABC):
             for mode in self.model_cfg.modes:
                 loss = self._epoch(epoch, mode)
                 if 'train' in mode:
-                    self.scheduler.step()
+                    self._scheduler_step()
                 if mode == 'val':
                     self.save(epoch, loss)
                 elif mode == 'val_ood' and 'val' not in self.model_cfg.modes:

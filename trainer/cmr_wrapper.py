@@ -22,8 +22,8 @@ class CMR(BaseTrainer):
         elif self.model_cfg.model_key == 'classifier':
             raise NotImplementedError(
                 'Need to think how to implement CMR classification. E.g. psi(x,y)=(p_1,p_2) - (1, 0).')
-
-        estimator = NeuralVMM(model=self.model, moment_function=moment_function)
+        print('Model config: ', self.model_cfg.trainer_config)
+        estimator = NeuralVMM(model=self.model, moment_function=moment_function, **self.model_cfg.trainer_config)
         return estimator
 
     def _set_kernels(self):
@@ -31,6 +31,9 @@ class CMR(BaseTrainer):
 
     def _get_yz_regressors(self):
         pass
+
+    def _scheduler_step(self):
+        self.estimator._scheduler_step()
 
     def _epoch(self, epochID, mode):
         '''
@@ -44,15 +47,9 @@ class CMR(BaseTrainer):
         data_iter = iter(self.dataloaders[mode])
         tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
 
-        is_init = False
-
         for i in tqdm_iter:
             batch = utils.dict_to_device(next(data_iter), self.device)
             x, y, z = batch['x'], batch['y'], batch['z']
-
-            if not is_init:
-                self.estimator.init_estimator([x, y], z)
-                is_init = True
 
             # For CMR estimators the optimization objective differs from the target objective
             with torch.no_grad():
@@ -73,10 +70,10 @@ class CMR(BaseTrainer):
             else:
                 with torch.no_grad():
                     obj_theta, _ = self.estimator.objective([x, y], z)
-                    cmr_obj = float(obj_theta.detach().numpy())
+                    cmr_obj = float(obj_theta.detach().cpu().numpy())
 
-            tqdm_iter.set_description("V: {} | Epoch: {} | {} | Loss: {:.4f}".format(
-                self.exp_cfg.version, epochID, mode, target_loss.item()
+            tqdm_iter.set_description("V: {} | Epoch: {} | {} | Obj: {:.4f} | Target Loss: {:.4f}".format(
+                self.exp_cfg.version, epochID, mode, cmr_obj, target_loss.item()
             ), refresh=True)
 
             all_losses['target_loss'].append(target_loss.item())
