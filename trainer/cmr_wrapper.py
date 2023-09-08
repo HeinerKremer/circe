@@ -15,15 +15,28 @@ class CMR(BaseTrainer):
         super().__init__(data_cfg, model_cfg, exp_cfg)
         self.estimator = self._construct_estimator()
 
+    @property
+    def opt(self):
+        return self.estimator.theta_optimizer
+
     def _construct_estimator(self):
+        regularizer = None
         if self.model_cfg.model_key == 'regressor':
             def moment_function(y_pred, y_true):
                 return y_pred[1] - y_true
+
+            if self.model_cfg.erm_reg_param > 0:
+                def regularizer(y_pred, y_true):
+                    return torch.nn.functional.mse_loss(y_pred[1], y_true)
         elif self.model_cfg.model_key == 'classifier':
             raise NotImplementedError(
                 'Need to think how to implement CMR classification. E.g. psi(x,y)=(p_1,p_2) - (1, 0).')
+        else:
+            raise NotImplementedError('Moment function not specified.')
+
         print('Model config: ', self.model_cfg.trainer_config)
-        estimator = NeuralVMM(model=self.model, moment_function=moment_function, **self.model_cfg.trainer_config)
+        estimator = NeuralVMM(model=self.model, moment_function=moment_function, theta_regularizer=regularizer,
+                              theta_reg_param=self.model_cfg.erm_reg_param, **self.model_cfg.trainer_config)
         return estimator
 
     def _set_kernels(self):

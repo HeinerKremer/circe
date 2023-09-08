@@ -18,51 +18,64 @@ data:
   regress: False
 
   batch_size: 1024
-  num_workers: 4
+  num_workers: 16
 
 model:
   model_key: regressor
   trainer_key: vmm
 
   trainer_config:
-    default: False
-    divergence: chi2
-    reg_param: 0.01
-    reg_param_rkhs_norm: 0.0
+    reg_param: 0
+    erm_reg_param: 0
     dual_func_network_kwargs:
       layer_widths:
         - 50
         - 20
       activation: LeakyReLU
       normalized: True
-    pretrain: False
-    pretrain_dual: False
-    early_stopping: False
-    val_loss_func: hsic
-    gpu: True
-
     theta_optim_args:
       optimizer:
-        OAdam:
-          lr: 0.0005
-          betas:
-            - 0.5
-            - 0.9
-      scheduler: False
+        AdamW:
+          lr: 0.00005
+          weight_decay: 0.01
+#          betas:
+#            - 0.5
+#            - 0.9
+      scheduler:
+        CosineAnnealingLR:
+          T_max: 20
     dual_optim_args:
       optimizer:
         OAdam:
-          lr: 0.0001
+          lr: 0.005
           betas:
             - 0.5
             - 0.9
-      scheduler: False
+          weight_decay: 0.01
+      scheduler:
+        CosineAnnealingLR:
+          T_max: 20
+
+    # Fixed arguments
+    default: False
+    gpu: True
     gradient_descent_ascent: True
-    max_num_epochs: 200
-    batch_size: 1024
-    eval_freq: 100
-    max_no_improve: 500
-    burn_in_cycles: 10
+    pretrain: False
+    pretrain_dual: False
+
+    # Following arguments are unused as batching/training is done in the wrapper class
+    max_num_epochs: False
+    batch_size: False
+    eval_freq: False
+    max_no_improve: False
+    burn_in_cycles: False
+    early_stopping: False
+
+    # Unused arguments
+    divergence: chi2
+    reg_param_rkhs_norm: 0.0
+    val_loss_func: hsic
+
 
   modes:
     - train
@@ -70,7 +83,7 @@ model:
     - val_ood
     - test
     - test_ood
-  epochs: 200
+  epochs: 20
   patience: 25
 
   network:
