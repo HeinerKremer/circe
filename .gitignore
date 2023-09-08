@@ -142,3 +142,5 @@ data/
 circe-venv-new
 .idea
 .DS_Store
+
+/config/dsprites_linear/vmm_hparam/

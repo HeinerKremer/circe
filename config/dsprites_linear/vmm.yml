@@ -25,18 +25,18 @@ model:
   trainer_key: vmm
 
   trainer_config:
-    reg_param: 0
-    erm_reg_param: 0
+    reg_param: 0.01
+    erm_reg_param: 1000
     dual_func_network_kwargs:
       layer_widths:
         - 50
         - 20
       activation: LeakyReLU
-      normalized: True
+      normalized: False
     theta_optim_args:
       optimizer:
         AdamW:
-          lr: 0.00005
+          lr: 0.0001
           weight_decay: 0.01
 #          betas:
 #            - 0.5
@@ -47,11 +47,11 @@ model:
     dual_optim_args:
       optimizer:
         OAdam:
-          lr: 0.005
+          lr: 0.0001
           betas:
             - 0.5
             - 0.9
-          weight_decay: 0.01
+          # weight_decay: 0.01
       scheduler:
         CosineAnnealingLR:
           T_max: 20
