@@ -43,15 +43,17 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None):
         with open(hparam_directory + "/" + method + '.sub', 'w') as subfile:
             subfile.write(f'executable = {wd}/py3venv.sh\n'
                           + f'arguments = "main.py -v $(MyArg) --seed 42 -w"\n'
-                          + f'error = {absolute_path}' + '/cluster/$(MyArg).err\n'
-                          + f'output = {absolute_path}' + '/cluster/$(MyArg).out\n'
-                          + f'log = {absolute_path}' + '/cluster/$(MyArg).log\n'
+                          + f'error = {absolute_path}' + '/cluster/$(Name).err\n'
+                          + f'output = {absolute_path}' + '/cluster/$(Name).out\n'
+                          + f'log = {absolute_path}' + '/cluster/$(Name).log\n'
                           + f'request_cpus = {cluster_spec["cpus"]}\n'
                           + f'request_memory = {cluster_spec["memory"]}\n'
                           + f'request_gpus = {cluster_spec["gpus"]}\n'
                           + f'requirements = TARGET.CUDAGlobalMemoryMb > {cluster_spec["cuda_memory"]}\n')
             for path in paths:
-                subfile.write(f'\nMyArg = {path} \nqueue\n')
+                name = os.path.splitext(os.path.split(os.path.realpath(path))[1])[0]
+                print(name)
+                subfile.write(f'\nMyArg = {path}\nName = {name}\nqueue\n')
 
         # Write bashscript to run python in venv
         # !/bin/bash

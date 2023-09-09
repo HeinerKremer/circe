@@ -43,7 +43,7 @@ model:
 #            - 0.9
       scheduler:
         CosineAnnealingLR:
-          T_max: 20
+          T_max: 50
     dual_optim_args:
       optimizer:
         OAdam:
@@ -54,7 +54,7 @@ model:
           # weight_decay: 0.01
       scheduler:
         CosineAnnealingLR:
-          T_max: 20
+          T_max: 50
 
     # Fixed arguments
     default: False
@@ -83,7 +83,7 @@ model:
     - val_ood
     - test
     - test_ood
-  epochs: 20
+  epochs: 50
   patience: 25
 
   network:
