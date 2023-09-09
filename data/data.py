@@ -1,3 +1,5 @@
+import multiprocessing
+
 from torch.utils.data import DataLoader
 
 from data.dsprites import DspritesBuilder
@@ -55,7 +57,7 @@ def create_dataloaders(data_cfg, modes):
             shuffle = shuffle,
             drop_last = drop_last, 
             pin_memory = True,
-            num_workers = data_cfg.num_workers
+            num_workers = min(data_cfg.num_workers, multiprocessing.cpu_count())
         )
     print('Data loading complete.')
     return loaders

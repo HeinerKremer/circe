@@ -144,3 +144,4 @@ circe-venv-new
 .DS_Store
 
 /config/dsprites_linear/vmm_hparam/
+py3venv.sh

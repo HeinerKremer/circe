@@ -36,7 +36,6 @@ class CMR(BaseTrainer):
 
         print('Model config: ', self.model_cfg.trainer_config)
         estimator = NeuralVMM(model=self.model, moment_function=moment_function, theta_regularizer=regularizer,
-                              theta_reg_param=self.model_cfg.trainer_config["erm_reg_param"],
                               **self.model_cfg.trainer_config)
         return estimator
 

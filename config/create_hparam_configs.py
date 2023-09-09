@@ -12,13 +12,20 @@ def iterate_argument_combinations(argument_dict):
     for prod in result:
         yield {key: val for key, val in zip(list(argument_dict.keys()), prod)}
 
+def get_wd():
+    path = os.path.realpath(__file__)
+    path, file = os.path.split(path)
+    wd, file = os.path.split(path)
+    return wd
 
 def generate_yamls(baseconfig, hparams, cluster_spec=None):
     path, file = os.path.split(baseconfig)
+    wd = get_wd()
     method = os.path.splitext(file)[0]
     hparam_directory = path + "/" + method +'_hparam'
     absolute_path = os.path.split(os.path.realpath(__file__))[0] + "/" + hparam_directory
     os.makedirs(absolute_path, exist_ok=True)
+    os.makedirs(absolute_path + "/cluster", exist_ok=True)
     paths = []
 
     cfg = yaml.load(open(baseconfig, "r"), Loader=yaml.FullLoader)
@@ -34,18 +41,26 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None):
 
     if cluster_spec:
         with open(hparam_directory + "/" + method + '.sub', 'w') as subfile:
-            subfile.write(f'executable = py3venv.sh\n'
-                          + f'arguments = "main.py -v $(config_file) --seed 42 -w"\n'
-                          # + f'error = {path}/cluster/jobs_{experiment_name}/{filename}.err\n'
-                          # + f'output = {path}/cluster/jobs_{experiment_name}/{filename}.out\n'
-                          # + f'log = {path}/cluster/jobs_{experiment_name}/{filename}.log\n'
+            subfile.write(f'executable = {wd}/py3venv.sh\n'
+                          + f'arguments = "main.py -v $(MyArg) --seed 42 -w"\n'
+                          + f'error = {absolute_path}' + '/cluster/$(MyArg).err\n'
+                          + f'output = {absolute_path}' + '/cluster/$(MyArg).out\n'
+                          + f'log = {absolute_path}' + '/cluster/$(MyArg).log\n'
                           + f'request_cpus = {cluster_spec["cpus"]}\n'
                           + f'request_memory = {cluster_spec["memory"]}\n'
                           + f'request_gpus = {cluster_spec["gpus"]}\n'
-                          + f'requirements = TARGET.CUDAGlobalMemoryMb > {cluster_spec["cuda_memory"]}\n'
-                          + "max_materialize = 150\n")
+                          + f'requirements = TARGET.CUDAGlobalMemoryMb > {cluster_spec["cuda_memory"]}\n')
             for path in paths:
-                subfile.write(f'\n\nconfig_file={path} \nqueue')
+                subfile.write(f'\nMyArg = {path} \nqueue\n')
+
+        # Write bashscript to run python in venv
+        # !/bin/bash
+        with open(f'{wd}/py3venv.sh', 'w') as exe:
+            exe.write("#!/bin/bash\n"
+                      + f"cd {wd}\n"
+                      + f"source {wd}/circe_venv/bin/activate\n"
+                      + f'echo "python3 $@"\n'
+                      + f'python3 $@')
     return paths
 
 
@@ -58,7 +73,7 @@ if __name__ == "__main__":
     cluster_spec = {"cpus": 16,
                     "memory": 64000,
                     "gpus": 1,
-                    "cuda_memory": 20000}
+                    "cuda_memory": 16000}
 
     print(generate_yamls(baseconfig, hparams, cluster_spec))
 
