@@ -25,7 +25,7 @@ class CMR(BaseTrainer):
             def moment_function(y_pred, y_true):
                 return y_pred[1] - y_true
 
-            if self.model_cfg.trainer_config["erm_reg_param"] > 0:
+            if self.model_cfg.trainer_config["theta_reg_param"] > 0:
                 def regularizer(y_pred, y_true):
                     return torch.nn.functional.mse_loss(y_pred[1], y_true)
         elif self.model_cfg.model_key == 'classifier':

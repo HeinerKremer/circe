@@ -26,7 +26,7 @@ model:
 
   trainer_config:
     reg_param: 0.01
-    erm_reg_param: 1000
+    theta_reg_param: 1000
     dual_func_network_kwargs:
       layer_widths:
         - 50

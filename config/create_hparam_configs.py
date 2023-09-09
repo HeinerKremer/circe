@@ -61,6 +61,8 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None):
                       + f"source {wd}/circe_venv/bin/activate\n"
                       + f'echo "python3 $@"\n'
                       + f'python3 $@')
+        st = os.stat(f'{wd}/py3venv.sh')
+        os.chmod(f'{wd}/py3venv.sh', st.st_mode | 0o111)
     return paths
 
 
