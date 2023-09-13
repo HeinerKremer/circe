@@ -4,7 +4,6 @@ from tqdm import tqdm
 import torch.nn.functional as F
 from collections import defaultdict
 from scipy.linalg import solve as scp_solve
-from cmr.methods.vmm_neural import NeuralVMM
 
 from trainer.base_trainer import BaseTrainer
 from utils import utils, losses, wandb_utils
@@ -35,8 +34,10 @@ class CMR(BaseTrainer):
             raise NotImplementedError('Moment function not specified.')
 
         print('Model config: ', self.model_cfg.trainer_config)
-        estimator = NeuralVMM(model=self.model, moment_function=moment_function, theta_regularizer=regularizer,
-                              **self.model_cfg.trainer_config)
+        if not self.estimator_class:
+            raise NotImplementedError('Need to specify CMR estimator class.')
+        estimator = self.estimator_class(model=self.model, moment_function=moment_function,
+                                         theta_regularizer=regularizer, **self.model_cfg.trainer_config)
         return estimator
 
     def _set_kernels(self):
@@ -102,14 +103,14 @@ class CMR(BaseTrainer):
         return all_losses['target_loss']
 
 
-class CMRTrainerBuilder:
-    def __init__(self):
-        self._instance = None
-
-    def __call__(self, data_cfg, model_cfg, exp_cfg, **_ignored):
-        if not self._instance:
-            self._instance = CMR(data_cfg=data_cfg, model_cfg=model_cfg, exp_cfg=exp_cfg)
-        return self._instance
+# class CMRTrainerBuilder:
+#     def __init__(self):
+#         self._instance = None
+#
+#     def __call__(self, data_cfg, model_cfg, exp_cfg, **_ignored):
+#         if not self._instance:
+#             self._instance = CMR(data_cfg=data_cfg, model_cfg=model_cfg, exp_cfg=exp_cfg)
+#         return self._instance
 
 
 if __name__=='__main__':

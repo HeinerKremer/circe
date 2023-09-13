@@ -1,7 +1,8 @@
 from trainer.hscic import HSCICTrainerBuilder
 from trainer.circe import CIRCETrainerBuilder
 from trainer.gcm import GCMTrainerBuilder
-from trainer.cmr_wrapper import CMRTrainerBuilder
+from trainer.smm import SMMTrainerBuilder
+from trainer.vmm import VMMTrainerBuilder
 
 
 class TrainerFactory(object):
@@ -41,4 +42,5 @@ factory = TrainerFactory()
 factory.register_builder("hscic", HSCICTrainerBuilder())
 factory.register_builder("circe", CIRCETrainerBuilder())
 factory.register_builder("gcm", GCMTrainerBuilder())
-factory.register_builder("vmm", CMRTrainerBuilder())
+factory.register_builder("vmm", VMMTrainerBuilder())
+factory.register_builder("smm", SMMTrainerBuilder())

@@ -49,6 +49,7 @@ if __name__=="__main__":
     cfg["exp_cfg"].version = f'{splitext(args.version)[0]}/{args.seed}'
     cfg["exp_cfg"].run_name = cfg["exp_cfg"].version
     cfg["exp_cfg"].wandb = args.wandb
+    cfg["exp_cfg"].seed = args.seed
 
     if args.wandb:
         init_wandb(cfg.copy(), args.mode)

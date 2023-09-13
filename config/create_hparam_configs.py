@@ -18,7 +18,7 @@ def get_wd():
     wd, file = os.path.split(path)
     return wd
 
-def generate_yamls(baseconfig, hparams, cluster_spec=None):
+def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
     path, file = os.path.split(baseconfig)
     wd = get_wd()
     method = os.path.splitext(file)[0]
@@ -42,7 +42,7 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None):
     if cluster_spec:
         with open(hparam_directory + "/" + method + '.sub', 'w') as subfile:
             subfile.write(f'executable = {wd}/py3venv.sh\n'
-                          + f'arguments = "main.py -v $(MyArg) --seed 42 -w"\n'
+                          + f'arguments = "main.py -v $(config) --seed $(seed) -w"\n'
                           + f'error = {absolute_path}' + '/cluster/$(Name).err\n'
                           + f'output = {absolute_path}' + '/cluster/$(Name).out\n'
                           + f'log = {absolute_path}' + '/cluster/$(Name).log\n'
@@ -50,10 +50,11 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None):
                           + f'request_memory = {cluster_spec["memory"]}\n'
                           + f'request_gpus = {cluster_spec["gpus"]}\n'
                           + f'requirements = TARGET.CUDAGlobalMemoryMb > {cluster_spec["cuda_memory"]}\n')
-            for path in paths:
-                name = os.path.splitext(os.path.split(os.path.realpath(path))[1])[0]
-                print(name)
-                subfile.write(f'\nMyArg = {path}\nName = {name}\nqueue\n')
+            for config_path in paths:
+                for seed in seeds:
+                    name = os.path.splitext(os.path.split(os.path.realpath(config_path))[1])[0]
+                    print(name)
+                    subfile.write(f'\nconfig = {config_path}\nName = {name}\nseed = {seed}\nqueue\n')
 
         # Write bashscript to run python in venv
         # !/bin/bash
@@ -70,8 +71,11 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None):
 
 if __name__ == "__main__":
     # Hparam sweeps
-    hparams = {'reg_param': [1e-6, 1e-4, 1e-2, 1],
-               'theta_reg_param': [1e-4, 1e-2, 1, 1e2, 1e4]}
+    hparams = {#'reg_param': [1e-6, 1e-4, 1e-2, 1],
+               "reg_param": [1e0],
+               #'theta_reg_param': [1e-4, 1e-2, 1, 1e2, 1e4]},
+               'theta_reg_param': [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
+    }
 
     baseconfig = "dsprites_linear/vmm.yml"
     cluster_spec = {"cpus": 16,
@@ -79,6 +83,7 @@ if __name__ == "__main__":
                     "gpus": 1,
                     "cuda_memory": 16000}
 
-    print(generate_yamls(baseconfig, hparams, cluster_spec))
+    seeds = list(range(42, 52))
+    print(generate_yamls(baseconfig, hparams, cluster_spec, seeds))
 
 

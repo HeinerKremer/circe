@@ -1,5 +1,5 @@
 experiment:
-  description: regression w/ VMM
+  description: regression w/ SMM
   output_location: results/dsprites_linear/
   load: null
   resume: false
@@ -22,11 +22,12 @@ data:
 
 model:
   model_key: regressor
-  trainer_key: vmm
+  trainer_key: smm
 
   trainer_config:
     reg_param: 0.01
     theta_reg_param: 1000
+    continuous_updating: False
     dual_func_network_kwargs:
       layer_widths:
         - 50
@@ -43,7 +44,7 @@ model:
 #            - 0.9
       scheduler:
         CosineAnnealingLR:
-          T_max: 100
+          T_max: 50
     dual_optim_args:
       optimizer:
         OAdam:
@@ -54,7 +55,7 @@ model:
           # weight_decay: 0.01
       scheduler:
         CosineAnnealingLR:
-          T_max: 100
+          T_max: 50
 
     # Fixed arguments
     default: False
@@ -83,7 +84,7 @@ model:
     - val_ood
     - test
     - test_ood
-  epochs: 100
+  epochs: 50
   patience: 25
 
   network:
