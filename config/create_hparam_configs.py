@@ -71,11 +71,9 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
 
 if __name__ == "__main__":
     # Hparam sweeps
-    hparams = {#'reg_param': [1e-6, 1e-4, 1e-2, 1],
-               "reg_param": [1e0],
-               #'theta_reg_param': [1e-4, 1e-2, 1, 1e2, 1e4]},
+    hparams = {"reg_param": [1e0],
                'theta_reg_param': [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
-    }
+                "progress_bar": [False]}
 
     baseconfig = "dsprites_linear/vmm.yml"
     cluster_spec = {"cpus": 16,
