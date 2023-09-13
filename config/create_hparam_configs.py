@@ -62,15 +62,15 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
                     subfile.write(f'\nconfig = {config_path}\nName = {name}\nseed = {seed}\nqueue\n')
 
         # Write bashscript to run python in venv
-        # !/bin/bash
-        with open(f'{wd}/py3venv.sh', 'w') as exe:
-            exe.write("#!/bin/bash\n"
-                      + f"cd {wd}\n"
-                      + f"source {wd}/circe_venv/bin/activate\n"
-                      + f'echo "python3 $@"\n'
-                      + f'python3 $@')
-        st = os.stat(f'{wd}/py3venv.sh')
-        os.chmod(f'{wd}/py3venv.sh', st.st_mode | 0o111)
+        if not os.path.exists(f'{wd}/py3venv.sh'):
+            with open(f'{wd}/py3venv.sh', 'w') as exe:
+                exe.write("#!/bin/bash\n"
+                          + f"cd {wd}\n"
+                          + f"source {wd}/circe_venv/bin/activate\n"
+                          + f'echo "python3 $@"\n'
+                          + f'python3 $@')
+            st = os.stat(f'{wd}/py3venv.sh')
+            os.chmod(f'{wd}/py3venv.sh', st.st_mode | 0o111)
     return paths
 
 

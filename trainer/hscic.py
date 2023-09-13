@@ -14,7 +14,7 @@ class HSCIC(BaseTrainer):
         self.LOO_done = False
         try:
             self.tqdm = self.model_cfg.progress_bar
-        except KeyError:
+        except AttributeError:
             self.tqdm = True
 
     def _get_yz_regressors(self):
@@ -60,6 +60,7 @@ class HSCIC(BaseTrainer):
         if self.tqdm:
             tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
         else:
+            print('Epoch:', epochID)
             tqdm_iter = range(len(self.dataloaders[mode]))
 
         for i in tqdm_iter:

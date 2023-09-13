@@ -16,9 +16,9 @@ class GCM(BaseTrainer):
         super().__init__(data_cfg, model_cfg, exp_cfg)
         try:
             self.tqdm = self.model_cfg.progress_bar
-        except KeyError:
+        except AttributeError:
             self.tqdm = True
-    
+
     def _set_kernels(self):
         self.kernel_y = [*self.model_cfg.kernel_y.keys()][0]
         self.kernel_y_args = [*self.model_cfg.kernel_y.values()][0]
@@ -143,6 +143,7 @@ class GCM(BaseTrainer):
         if self.tqdm:
             tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
         else:
+            print('Epoch:', epochID)
             tqdm_iter = range(len(self.dataloaders[mode]))
 
         y_prev = None

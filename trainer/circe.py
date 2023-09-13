@@ -14,9 +14,8 @@ class CIRCE(BaseTrainer):
         super().__init__(data_cfg, model_cfg, exp_cfg)
         try:
             self.tqdm = self.model_cfg.progress_bar
-        except KeyError:
+        except AttributeError:
             self.tqdm = True
-        print(self.tdqm)
 
     def _set_kernels(self):
         self.kernel_ft = [*self.model_cfg.kernel_ft.keys()][0]
@@ -111,6 +110,7 @@ class CIRCE(BaseTrainer):
         if self.tqdm:
             tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
         else:
+            print('Epoch:', epochID)
             tqdm_iter = range(len(self.dataloaders[mode]))
 
         for i in tqdm_iter:
