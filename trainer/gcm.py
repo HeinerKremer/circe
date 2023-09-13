@@ -14,6 +14,10 @@ from trainer.base_trainer import BaseTrainer
 class GCM(BaseTrainer):
     def __init__(self, data_cfg, model_cfg, exp_cfg) -> None:
         super().__init__(data_cfg, model_cfg, exp_cfg)
+        try:
+            self.tqdm = self.model_cfg.progress_bar
+        except KeyError:
+            self.tqdm = True
     
     def _set_kernels(self):
         self.kernel_y = [*self.model_cfg.kernel_y.keys()][0]
@@ -136,7 +140,10 @@ class GCM(BaseTrainer):
         all_losses = defaultdict(list)
 
         data_iter = iter(self.dataloaders[mode])
-        tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
+        if self.tqdm:
+            tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
+        else:
+            tqdm_iter = range(len(self.dataloaders[mode]))
 
         y_prev = None
         fx_prev = None
@@ -172,9 +179,10 @@ class GCM(BaseTrainer):
             if train:
                 self._backprop(loss)
 
-            tqdm_iter.set_description("V: {} | Epoch: {} | {} | Loss: {:.4f}".format(
-                self.exp_cfg.version, epochID, mode, loss.item()
-            ), refresh=True)
+            if self.tqdm:
+                tqdm_iter.set_description("V: {} | Epoch: {} | {} | Loss: {:.4f}".format(
+                    self.exp_cfg.version, epochID, mode, loss.item()
+                ), refresh=True)
 
             all_losses['target_loss'].append(target_loss.item())
             all_losses['gcm'].append(gcm.item())

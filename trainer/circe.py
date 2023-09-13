@@ -12,6 +12,11 @@ from utils import utils, losses, wandb_utils
 class CIRCE(BaseTrainer):
     def __init__(self, data_cfg, model_cfg, exp_cfg) -> None:
         super().__init__(data_cfg, model_cfg, exp_cfg)
+        try:
+            self.tqdm = self.model_cfg.progress_bar
+        except KeyError:
+            self.tqdm = True
+        print(self.tdqm)
 
     def _set_kernels(self):
         self.kernel_ft = [*self.model_cfg.kernel_ft.keys()][0]
@@ -103,7 +108,10 @@ class CIRCE(BaseTrainer):
         all_losses = defaultdict(list)
 
         data_iter = iter(self.dataloaders[mode])
-        tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
+        if self.tqdm:
+            tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
+        else:
+            tqdm_iter = range(len(self.dataloaders[mode]))
 
         for i in tqdm_iter:
             batch = utils.dict_to_device(next(data_iter), self.device)
@@ -139,9 +147,10 @@ class CIRCE(BaseTrainer):
             if train:
                 self._backprop(loss)
 
-            tqdm_iter.set_description("V: {} | Epoch: {} | {} | Loss: {:.4f}".format(
-                self.exp_cfg.version, epochID, mode, loss.item()
-            ), refresh=True)
+            if self.tqdm:
+                tqdm_iter.set_description("V: {} | Epoch: {} | {} | Loss: {:.4f}".format(
+                    self.exp_cfg.version, epochID, mode, loss.item()
+                ), refresh=True)
 
             all_losses['target_loss'].append(target_loss.item())
             all_losses['circe_c'].append(circe.item())

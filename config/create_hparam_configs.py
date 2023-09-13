@@ -86,13 +86,16 @@ if __name__ == "__main__":
                     "progress_bar": [False]}
     elif args.method == "circe":
         baseconfig = "dsprites_linear/circe.yml"
-        hparams = {"lamda": [0, 1, 10, 100, 1000]}
+        hparams = {"lamda": [0, 1, 10, 100, 1000],
+                   "progress_bar": [False]}
     elif args.method == 'hscic':
         baseconfig = "dsprites_linear/hscic.yml"
-        hparams = {"lamda": [0, 10, 100, 1000]}
+        hparams = {"lamda": [0, 10, 100, 1000],
+                   "progress_bar": [False]}
     elif args.method == 'gcm':
         baseconfig = "dsprites_linear/gcm.yml"
-        hparams = {"lamda": [0, 1e-2, 1e-4]}
+        hparams = {"lamda": [0, 1e-2, 1e-4],
+                   "progress_bar": [False]}
     else:
         raise NotImplementedError('Invalid method specified')
 
