@@ -1,3 +1,5 @@
+import argparse
+
 import yaml
 import os
 import copy
@@ -32,7 +34,10 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
 
     for hparam in iterate_argument_combinations(hparams):
         config = copy.deepcopy(cfg)
-        config['model']['trainer_config'].update(hparam)
+        if method in ["gcm", "circe", "hscic"]:
+            config['model'].update(hparam)
+        else:
+            config['model']['trainer_config'].update(hparam)
         config_name = [f'{key}={value}' for key, value in hparam.items()]
         filename = method + "_" + '_'.join(config_name) + ".yml"
         with open(hparam_directory + "/" + filename, 'w') as f:
@@ -70,12 +75,27 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
 
 
 if __name__ == "__main__":
-    # Hparam sweeps
-    hparams = {"reg_param": [1e0],
-               'theta_reg_param': [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
-                "progress_bar": [False]}
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--method', type=str)
+    args = parser.parse_args()
 
-    baseconfig = "dsprites_linear/vmm.yml"
+    if args.method == "vmm":
+        baseconfig = "dsprites_linear/vmm.yml"
+        hparams = {"reg_param": [1e0],
+                    "theta_reg_param": [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
+                    "progress_bar": [False]}
+    elif args.method == "circe":
+        baseconfig = "dsprites_linear/circe.yml"
+        hparams = {"lamda": [0, 1, 10, 100, 1000]}
+    elif args.method == 'hscic':
+        baseconfig = "dsprites_linear/hscic.yml"
+        hparams = {"lamda": [0, 10, 100, 1000]}
+    elif args.method == 'gcm':
+        baseconfig = "dsprites_linear/gcm.yml"
+        hparams = {"lamda": [0, 1e-2, 1e-4]}
+    else:
+        raise NotImplementedError('Invalid method specified')
+
     cluster_spec = {"cpus": 16,
                     "memory": 64000,
                     "gpus": 1,

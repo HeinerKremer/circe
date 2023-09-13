@@ -13,6 +13,7 @@ class CMR(BaseTrainer):
     def __init__(self, data_cfg, model_cfg, exp_cfg) -> None:
         super().__init__(data_cfg, model_cfg, exp_cfg)
         self.estimator = self._construct_estimator()
+        self.tqdm = self.model_cfg.trainer_config["progress_bar"]
 
     @property
     def opt(self):
@@ -59,7 +60,11 @@ class CMR(BaseTrainer):
         all_losses = defaultdict(list)
 
         data_iter = iter(self.dataloaders[mode])
-        tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
+
+        if self.tqdm:
+            tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
+        else:
+            tqdm_iter = range(len(self.dataloaders[mode]))
 
         for i in tqdm_iter:
             batch = utils.dict_to_device(next(data_iter), self.device)
@@ -86,9 +91,10 @@ class CMR(BaseTrainer):
                     obj_theta, _ = self.estimator.objective([x, y], z)
                     cmr_obj = float(obj_theta.detach().cpu().numpy())
 
-            tqdm_iter.set_description("V: {} | Epoch: {} | {} | Obj: {:.4f} | Target Loss: {:.4f}".format(
-                self.exp_cfg.version, epochID, mode, cmr_obj, target_loss.item()
-            ), refresh=True)
+            if self.tqdm:
+                tqdm_iter.set_description("V: {} | Epoch: {} | {} | Obj: {:.4f} | Target Loss: {:.4f}".format(
+                    self.exp_cfg.version, epochID, mode, cmr_obj, target_loss.item()
+                ), refresh=True)
 
             all_losses['target_loss'].append(target_loss.item())
             all_losses['moment_norm'].append(moment_norm)
