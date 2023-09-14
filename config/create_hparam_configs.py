@@ -14,11 +14,13 @@ def iterate_argument_combinations(argument_dict):
     for prod in result:
         yield {key: val for key, val in zip(list(argument_dict.keys()), prod)}
 
+
 def get_wd():
     path = os.path.realpath(__file__)
     path, file = os.path.split(path)
     wd, file = os.path.split(path)
     return wd
+
 
 def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
     path, file = os.path.split(baseconfig)

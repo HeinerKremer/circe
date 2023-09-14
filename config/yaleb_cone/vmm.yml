@@ -31,7 +31,7 @@ model:
   patience: 50
 
   trainer_config:
-    reg_param: 1.0
+    reg_param: 0.0001
     theta_reg_param: 0
     dual_func_network_kwargs:
       layer_widths:

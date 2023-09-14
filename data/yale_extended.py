@@ -45,7 +45,7 @@ class YaleBExtended(Dataset):
 
         transforms = [
             T.Normalize(mean=(0.5), std=(0.5)),
-            T.Resize((224, 224))
+            T.Resize((224, 224), antialias=True)
         ]
         self.transforms = T.Compose(transforms)
 
