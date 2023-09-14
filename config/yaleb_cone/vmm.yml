@@ -27,11 +27,11 @@ model:
     - val_ood
     - test
     - test_ood
-  epochs: 250
+  epochs: 20
   patience: 50
 
   trainer_config:
-    reg_param: 0.0001
+    reg_param: 0
     theta_reg_param: 0
     dual_func_network_kwargs:
       layer_widths:
@@ -46,17 +46,17 @@ model:
           weight_decay: 0.01
       scheduler:
         CosineAnnealingLR:
-          T_max: 250
+          T_max: 20
     dual_optim_args:
       optimizer:
         OAdam:
-          lr: 0.0001
+          lr: 0.001
           betas:
             - 0.5
             - 0.9
       scheduler:
         CosineAnnealingLR:
-          T_max: 250
+          T_max: 20
 
     # Fixed arguments
     default: False
