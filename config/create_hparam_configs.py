@@ -77,6 +77,7 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--method', type=str)
+    parser.add_argument('--rollouts', type=int, default=10)
     args = parser.parse_args()
 
     if args.method == "vmm":
@@ -96,6 +97,12 @@ if __name__ == "__main__":
         baseconfig = "dsprites_linear/gcm.yml"
         hparams = {"lamda": [0, 1e-2, 1e-4],
                    "progress_bar": [False]}
+    elif args.method == 'smm':
+        baseconfig = "dsprites_linear/smm.yml"
+        hparams = {"reg_param": [1e-4, 1e-2, 1e0],
+                   "theta_reg_param": [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
+                   "continuous_updating": [True, False],
+                   "progress_bar": [False]}
     else:
         raise NotImplementedError('Invalid method specified')
 
@@ -104,7 +111,7 @@ if __name__ == "__main__":
                     "gpus": 1,
                     "cuda_memory": 16000}
 
-    seeds = list(range(42, 52))
+    seeds = list(range(42, 42 + args.rollouts))
     print(generate_yamls(baseconfig, hparams, cluster_spec, seeds))
 
 

@@ -25,7 +25,7 @@ model:
   trainer_key: smm
 
   trainer_config:
-    reg_param: 0.01
+    reg_param: 1.0
     theta_reg_param: 1000
     continuous_updating: False
     dual_func_network_kwargs:
@@ -44,7 +44,7 @@ model:
 #            - 0.9
       scheduler:
         CosineAnnealingLR:
-          T_max: 50
+          T_max: 100
     dual_optim_args:
       optimizer:
         OAdam:
@@ -55,7 +55,7 @@ model:
           # weight_decay: 0.01
       scheduler:
         CosineAnnealingLR:
-          T_max: 50
+          T_max: 100
 
     # Fixed arguments
     default: False
@@ -84,7 +84,7 @@ model:
     - val_ood
     - test
     - test_ood
-  epochs: 50
+  epochs: 100
   patience: 25
 
   network:
