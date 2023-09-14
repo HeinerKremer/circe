@@ -26,7 +26,7 @@ model:
 
   trainer_config:
     reg_param: 1.0
-    theta_reg_param: 1000
+    theta_reg_param: 0
     continuous_updating: False
     dual_func_network_kwargs:
       layer_widths:
@@ -63,6 +63,7 @@ model:
     gradient_descent_ascent: True
     pretrain: False
     pretrain_dual: False
+    progress_bar: True
 
     # Following arguments are unused as batching/training is done in the wrapper class
     max_num_epochs: False

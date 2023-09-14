@@ -87,9 +87,9 @@ class CMR(BaseTrainer):
             if train:
                 cmr_obj = self.estimator._optimize_step_theta([x, y], z)
             else:
-                with torch.no_grad():
-                    obj_theta, _ = self.estimator.objective([x, y], z)
-                    cmr_obj = float(obj_theta.detach().cpu().numpy())
+                # with torch.no_grad():
+                obj_theta, _ = self.estimator.objective([x, y], z)
+                cmr_obj = float(obj_theta.detach().cpu().numpy())
 
             if self.tqdm:
                 tqdm_iter.set_description("V: {} | Epoch: {} | {} | Obj: {:.4f} | Target Loss: {:.4f}".format(
