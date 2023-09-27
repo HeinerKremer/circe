@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 
 import yaml
 import os
@@ -22,7 +23,65 @@ def get_wd():
     return wd
 
 
-def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
+def adapt_cosine_scheduler_to_epochs(config):
+    try:
+        config['model']['trainer_config']['theta_optim_args']['scheduler']['CosineAnnealingLR']['T_max'] = config['model']['epochs']
+    except KeyError:
+        pass
+
+    try:
+        config['model']['trainer_config']['dual_optim_args']['scheduler']['CosineAnnealingLR']['T_max'] = config['model']['epochs']
+    except KeyError:
+        pass
+
+    try:
+        config['model']['scheduler']['CosineAnnealingLR']['T_max'] = config['model']['epochs']
+    except KeyError:
+        pass
+    return config
+
+
+def update_weight_decay(config, weight_decay):
+    try:
+        config['model']['trainer_config']['theta_optim_args']['optimizer']['AdamW']['weight_decay'] = weight_decay
+    except KeyError:
+        pass
+
+    try:
+        config['model']['trainer_config']['dual_optim_args']['optimizer']['AdamW']['weight_decay'] = weight_decay
+    except KeyError:
+        pass
+
+    try:
+        config['model']['optimizer']['AdamW']['weight_decay'] = weight_decay
+    except KeyError:
+        pass
+    return config
+
+
+def update_learning_rates(config, lr: tuple):
+    try:
+        for k in config['model']['trainer_config']['theta_optim_args']['optimizer'].keys():
+            config['model']['trainer_config']['theta_optim_args']['optimizer'][k]['lr'] = lr[0]
+    except KeyError:
+        pass
+
+    try:
+        for k in config['model']['trainer_config']['dual_optim_args']['optimizer'].keys():
+            config['model']['trainer_config']['dual_optim_args']['optimizer'][k]['lr'] = lr[1]
+    except KeyError:
+        pass
+
+    try:
+        for k in config['model']['optimizer'].keys():
+            config['model']['optimizer'][k]['lr'] = lr
+    except KeyError:
+        pass
+    return config
+
+
+def generate_yamls(exp, method, hparams, cluster_spec=None, seeds=[42]):
+    baseconfig = f'{exp}/{method}.yml'
     path, file = os.path.split(baseconfig)
     wd = get_wd()
     method = os.path.splitext(file)[0]
@@ -34,17 +93,41 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
 
     cfg = yaml.load(open(baseconfig, "r"), Loader=yaml.FullLoader)
 
-    for hparam in iterate_argument_combinations(hparams):
-        config = copy.deepcopy(cfg)
-        if method in ["gcm", "circe", "hscic"]:
-            config['model'].update(hparam)
-        else:
-            config['model']['trainer_config'].update(hparam)
-        config_name = [f'{key}={value}' for key, value in hparam.items()]
-        filename = method + "_" + '_'.join(config_name) + ".yml"
-        with open(hparam_directory + "/" + filename, 'w') as f:
-            yaml.dump(config, f, default_flow_style=False)
-            paths.append(hparam_directory + "/" + filename)
+    if 'learning_rates' not in hparams:
+        hparams['learning_rates'] = [None]
+    if 'weight_decay' not in hparams:
+        hparams['weight_decay'] = [None]
+    if 'trainer_config' not in hparams:
+        hparams['trainer_config'] = {'': ['']}
+    if 'config' not in hparams:
+        hparams['config'] = {'': ['']}
+
+    for hparam in iterate_argument_combinations(hparams['config']):
+        for hparam_trainer in iterate_argument_combinations(hparams['trainer_config']):
+            version = 0
+            for lr in hparams['learning_rates']:
+                for weight_decay in hparams['weight_decay']:
+                    version += 1
+                    config = copy.deepcopy(cfg)
+                    config['model'].update(hparam)
+                    try:
+                        config['model']['trainer_config'].update(hparam_trainer)
+                    except KeyError:
+                        pass
+                    config = adapt_cosine_scheduler_to_epochs(config)
+
+                    if lr is not None:
+                        config = update_learning_rates(config, lr)
+                    if weight_decay is not None:
+                        config = update_weight_decay(config, weight_decay)
+
+                    config_name = ([f'{key}={value}' for key, value in hparam.items()]
+                                   + [f'{key}={value}' for key, value in hparam_trainer.items()]
+                                   + [f'v{version}'])
+                    filename = method + "_" + '_'.join(config_name) + ".yml"
+                    with open(hparam_directory + "/" + filename, 'w') as f:
+                        yaml.dump(config, f, default_flow_style=False)
+                        paths.append(hparam_directory + "/" + filename)
 
     if cluster_spec:
         with open(hparam_directory + "/" + method + '.sub', 'w') as subfile:
@@ -79,32 +162,49 @@ def generate_yamls(baseconfig, hparams, cluster_spec=None, seeds=[42]):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--method', type=str)
+    parser.add_argument('--exp', type=str)
     parser.add_argument('--rollouts', type=int, default=10)
     args = parser.parse_args()
 
-    if args.method == "vmm":
-        baseconfig = "dsprites_linear/vmm.yml"
-        hparams = {"reg_param": [1e0],
-                    "theta_reg_param": [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
-                    "progress_bar": [False]}
+    if 'vmm' in args.method:
+        hparams = {
+            'config': {'epochs': [200, 500]},
+            'trainer_config': {
+                "reg_param": [1e-6, 1e-4, 1e-2, 1],
+                "theta_reg_param": [1e-6, 1e-3, 1],
+                "progress_bar": [False]},
+            'learning_rates': [(1e-4, 1e-4), (1e-3, 1e-3), (1e-2, 1e-2), (1e-4, 1e-3), (1e-3, 1e-2)],
+            'weight_decay': [1e-2, 1e-4]
+        }
     elif args.method == "circe":
-        baseconfig = "dsprites_linear/circe.yml"
-        hparams = {"lamda": [0, 1, 10, 100, 1000],
-                   "progress_bar": [False]}
+        hparams = {
+            'config': {
+                'epochs': [200, 500],
+                "lamda": [0, 1, 10, 100, 1000],
+                "progress_bar": [False]
+            },
+            'learning_rates': [1e-4, 1e-3, 1e-2],
+            'weight_decay': [1e-2, 1e-4],
+        }
     elif args.method == 'hscic':
-        baseconfig = "dsprites_linear/hscic.yml"
-        hparams = {"lamda": [0, 10, 100, 1000],
-                   "progress_bar": [False]}
+        hparams = {'config': {
+            "lamda": [0, 10, 100, 1000],
+            "progress_bar": [False]},
+        }
     elif args.method == 'gcm':
-        baseconfig = "dsprites_linear/gcm.yml"
-        hparams = {"lamda": [0, 1e-2, 1e-4],
-                   "progress_bar": [False]}
+        hparams = {'config': {
+            "lamda": [0, 1e-2, 1e-4],
+            "progress_bar": [False]},
+        }
     elif args.method == 'smm':
-        baseconfig = "dsprites_linear/smm.yml"
-        hparams = {"reg_param": [1e-4, 1e-2, 1e0],
-                   "theta_reg_param": [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
-                   "continuous_updating": [True, False],
-                   "progress_bar": [False]}
+        hparams = {
+            'config': {'epochs': [200, 500]},
+            'trainer_config': {
+                "reg_param": [1e-4, 1e-2, 1e0],
+                "theta_reg_param": [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1],
+                "continuous_updating": [True, False],
+                "progress_bar": [False]}
+        }
     else:
         raise NotImplementedError('Invalid method specified')
 
@@ -114,6 +214,8 @@ if __name__ == "__main__":
                     "cuda_memory": 16000}
 
     seeds = list(range(42, 42 + args.rollouts))
-    print(generate_yamls(baseconfig, hparams, cluster_spec, seeds))
+    yamls = generate_yamls(args.exp, args.method, hparams, cluster_spec, seeds)
+    print(yamls)
+    print(f'Generated {len(yamls)} yamls')
 
 

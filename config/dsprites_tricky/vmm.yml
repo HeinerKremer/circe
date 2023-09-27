@@ -1,11 +1,11 @@
 experiment:
   description: regression w/ VMM
-  output_location: results/dsprites_linear/
+  output_location: results/dsprites_nonlinear/
   load: null
   resume: false
 
 data:
-  data_key: dsprites
+  data_key: dsprites-nonlinear
 
   train: data/dsprites-dataset/dsprites_train.npz
   val: data/dsprites-dataset/dsprites_val.npz
@@ -14,8 +14,8 @@ data:
   test_ood: data/dsprites-dataset/dsprites_test.npz
   target: position_y
   distractor: position_x
+  nl_type: tricky
   noise: 2
-  regress: False
 
   batch_size: 1024
   num_workers: 16

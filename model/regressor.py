@@ -13,7 +13,7 @@ class Regressor(BaseModel):
 
     def _build_modules(self):
         try:
-            featurizer = eval("torchvision.models.{}(pretrained=True)".format(self.cfg.network['featurizer']))
+            featurizer = eval("torchvision.models.{}(weights=torchvision.models.ResNet18_Weights.IMAGENET1K_V1)".format(self.cfg.network['featurizer']))
             self.featurizer = torch.nn.Sequential(*(list(featurizer.children())[:-1]))
         except:
             self.featurizer = Network(self.cfg.network['featurizer'])

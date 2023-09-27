@@ -87,7 +87,6 @@ class CMR(BaseTrainer):
             if train:
                 cmr_obj = self.estimator._optimize_step_theta([x, y], z)
             else:
-                # with torch.no_grad():
                 obj_theta, _ = self.estimator.objective([x, y], z)
                 cmr_obj = float(obj_theta.detach().cpu().numpy())
 
@@ -97,9 +96,7 @@ class CMR(BaseTrainer):
                 ), refresh=True)
 
             all_losses['target_loss'].append(target_loss.item())
-            all_losses['moment_norm'].append(moment_norm)
-            # all_losses['mmr'].append(mmr)
-            # all_losses['hsic'].append(hsic)
+            # all_losses['moment_norm'].append(moment_norm)
             all_losses['cmr_obj'].append(cmr_obj)
 
         all_losses = utils.aggregate(all_losses)
