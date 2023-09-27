@@ -48,7 +48,7 @@ class DspritesNonLinear(Dsprites):
                     noise_draws = np.concatenate([noise_draws, noise[valid_idx]])
 
             p = np.random.permutation(len(indices))
-            indices = indices[p][:N].astype(np.int)
+            indices = indices[p][:N].astype(int)
             noise_draws = noise_draws[p][:N]
             self.images = self.images[indices]
             self.latent_classes = self.latent_classes[indices]

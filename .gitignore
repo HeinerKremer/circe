@@ -148,3 +148,5 @@ circe-venv-new
 py3venv.sh
 ExtendedYaleB.tar.bz2
 utils/wandb_utils.py
+
+/config/yaleb_cone/lr/*
