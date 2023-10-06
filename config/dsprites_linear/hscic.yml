@@ -30,7 +30,7 @@ model:
     - test
     - test_ood
   epochs: 200
-  patience: 50
+  patience: 25
   lamda: 10
   ridge_lambda: 1.0
   kernel_ft:
