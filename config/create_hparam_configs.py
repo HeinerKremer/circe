@@ -186,6 +186,7 @@ if __name__ == "__main__":
             'config': {'epochs': [100]},
             'trainer_config': {
                 "reg_param": [1e-2, 1e-1, 1, 10],
+                "divergence": ['chi2', 'kl', 'log'],
                 # "theta_reg_param": [1e-6, 1e-3, 1],
                 "progress_bar": [False]},
         }
