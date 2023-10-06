@@ -33,8 +33,8 @@ model:
   patience: 25
 
   trainer_config:
-    reg_param: 0.01
-    theta_reg_param: 1000
+    reg_param: 1.0
+    theta_reg_param: 0
     dual_func_network_kwargs:
       layer_widths:
         - 50
@@ -45,7 +45,7 @@ model:
       optimizer:
         AdamW:
           lr: 0.0001
-          weight_decay: 0.01
+          weight_decay: 0.0001
       scheduler:
         CosineAnnealingLR:
           T_max: *num_epochs
