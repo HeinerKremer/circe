@@ -69,7 +69,7 @@ class HSCIC(BaseTrainer):
 
             if self.model_cfg.loo_cond_mean and not self.LOO_done:
                 with torch.no_grad():
-                    Kz = eval(f'{self.kernel_z}_kernel(z, **self.kernel_z_args)')
+                    Kz = eval(f'losses.{self.kernel_z}_kernel(z, **self.kernel_z_args)')
                     print('Estimating regressions parameters with LOO')
                     reg_list = [1e-3, 1e-2, 1e-1, 1.0, 10.0]
                     sigma2_list = [1.0, 0.1, 0.01, 0.001]
