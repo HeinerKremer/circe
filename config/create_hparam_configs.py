@@ -167,28 +167,49 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if 'vmm' in args.method:
+        # hparams = {
+        #     'config': {'epochs': [200, 500]},
+        #     'trainer_config': {
+        #         "reg_param": [1e-6, 1e-4, 1e-2, 1],
+        #         "theta_reg_param": [1e-6, 1e-3, 1],
+        #         "progress_bar": [False]},
+        #     'learning_rates': [(1e-4, 1e-4), (1e-3, 1e-3), (1e-2, 1e-2), (1e-4, 1e-3), (1e-3, 1e-2)],
+        #     'weight_decay': [1e-2, 1e-4]
+        # }
         hparams = {
-            'config': {'epochs': [200, 500]},
+            'config': {'epochs': [100]},
             'trainer_config': {
-                "reg_param": [1e-6, 1e-4, 1e-2, 1],
-                "theta_reg_param": [1e-6, 1e-3, 1],
                 "progress_bar": [False]},
-            'learning_rates': [(1e-4, 1e-4), (1e-3, 1e-3), (1e-2, 1e-2), (1e-4, 1e-3), (1e-3, 1e-2)],
-            'weight_decay': [1e-2, 1e-4]
+        }
+    elif 'fgel' in args.method:
+        hparams = {
+            'config': {'epochs': [100]},
+            'trainer_config': {
+                "reg_param": [1e-2, 1e-1, 1, 10],
+                # "theta_reg_param": [1e-6, 1e-3, 1],
+                "progress_bar": [False]},
         }
     elif args.method == "circe":
+        # hparams = {
+        #     'config': {
+        #         'epochs': [200, 500],
+        #         "lamda": [0, 1, 10, 100, 1000],
+        #         "progress_bar": [False]
+        #     },
+        #     'learning_rates': [1e-4, 1e-3, 1e-2],
+        #     'weight_decay': [1e-2, 1e-4],
+        # }
         hparams = {
             'config': {
-                'epochs': [200, 500],
-                "lamda": [0, 1, 10, 100, 1000],
+                'epochs': [100],
+                "lamda": [0, 1000],
                 "progress_bar": [False]
             },
-            'learning_rates': [1e-4, 1e-3, 1e-2],
-            'weight_decay': [1e-2, 1e-4],
         }
     elif args.method == 'hscic':
         hparams = {'config': {
-            "lamda": [0, 10, 100, 1000],
+            'epochs': [100],
+            "lamda": [1000],
             "progress_bar": [False]},
         }
     elif args.method == 'gcm':

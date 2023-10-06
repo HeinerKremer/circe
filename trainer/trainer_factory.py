@@ -3,6 +3,7 @@ from trainer.circe import CIRCETrainerBuilder
 from trainer.gcm import GCMTrainerBuilder
 from trainer.smm import SMMTrainerBuilder
 from trainer.vmm import VMMTrainerBuilder
+from trainer.fgel import FGELTrainerBuilder
 
 
 class TrainerFactory(object):
@@ -43,4 +44,5 @@ factory.register_builder("hscic", HSCICTrainerBuilder())
 factory.register_builder("circe", CIRCETrainerBuilder())
 factory.register_builder("gcm", GCMTrainerBuilder())
 factory.register_builder("vmm", VMMTrainerBuilder())
+factory.register_builder("fgel", FGELTrainerBuilder())
 factory.register_builder("smm", SMMTrainerBuilder())

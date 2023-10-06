@@ -31,7 +31,7 @@ model:
     - test_ood
   epochs: 200
   patience: 25
-  lamda: 10
+  lamda: 1000
   ridge_lambda: 0.1
   kernel_ft:
     gaussian:
@@ -101,7 +101,7 @@ model:
   optimizer:
     AdamW:
       lr: 0.0001
-      weight_decay: 0.01
+      weight_decay: 0.0001
 
   scheduler:
     CosineAnnealingLR:

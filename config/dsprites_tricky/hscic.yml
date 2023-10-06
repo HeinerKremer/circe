@@ -32,7 +32,7 @@ model:
     - test_ood
   epochs: 200
   patience: 50
-  lamda: 10
+  lamda: 1000
   ridge_lambda: 1.0
   kernel_ft:
     gaussian:

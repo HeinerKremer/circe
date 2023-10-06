@@ -1,5 +1,5 @@
 experiment:
-  description: regression w/ VMM
+  description: regression w/ FGEL
   output_location: results/dsprites_nonlinear/
   load: null
   resume: false
@@ -22,7 +22,7 @@ data:
 
 model:
   model_key: regressor
-  trainer_key: vmm
+  trainer_key: fgel
   modes:
     - train
     - val
