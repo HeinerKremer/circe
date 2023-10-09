@@ -185,10 +185,11 @@ if __name__ == "__main__":
         hparams = {
             'config': {'epochs': [100]},
             'trainer_config': {
-                "reg_param": [1e-2, 1e-1, 1, 10],
+                "reg_param": [0.1, 1, 10],
                 "divergence": ['chi2', 'kl', 'log'],
                 # "theta_reg_param": [1e-6, 1e-3, 1],
                 "progress_bar": [False]},
+            'learning_rates': [(1e-5, 1e-5), (1e-5, 1e-4)],
         }
     elif args.method == "circe":
         # hparams = {

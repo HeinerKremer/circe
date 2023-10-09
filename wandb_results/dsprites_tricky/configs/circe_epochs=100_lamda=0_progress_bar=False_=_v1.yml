@@ -1,0 +1,99 @@
+data:
+  batch_size: 1024
+  data_key: dsprites-nonlinear
+  distractor: position_x
+  nl_type: tricky
+  noise: 2
+  num_workers: 16
+  target: position_y
+  test: data/dsprites-dataset/dsprites_test.npz
+  test_ood: data/dsprites-dataset/dsprites_test.npz
+  train: data/dsprites-dataset/dsprites_train.npz
+  val: data/dsprites-dataset/dsprites_val.npz
+  val_ood: data/dsprites-dataset/dsprites_val.npz
+experiment:
+  description: regression w/ CIRCE regularization
+  load: null
+  output_location: results/dsprites_nonlinear/
+  resume: false
+model:
+  biased: false
+  centered_circe: true
+  epochs: 100
+  kernel_ft:
+    gaussian:
+      sigma2: 0.01
+  kernel_y:
+    gaussian:
+      sigma2: 0.01
+  kernel_z:
+    gaussian:
+      sigma2: 1.0
+  lamda: 0
+  loo_cond_mean: true
+  model_key: regressor
+  modes:
+  - train
+  - val
+  - val_ood
+  - test
+  - test_ood
+  n_last_reg_layers: 1
+  network:
+    fc1:
+    - Linear:
+        in_features: 256
+        out_features: 128
+    - LeakyReLU:
+        inplace: true
+    fc2:
+    - Linear:
+        in_features: 128
+        out_features: 64
+    featurizer:
+    - Conv2d:
+        in_channels: 1
+        kernel_size: 3
+        out_channels: 16
+        padding: 1
+        stride: 2
+    - LeakyReLU:
+        inplace: true
+    - Conv2d:
+        in_channels: 16
+        kernel_size: 3
+        out_channels: 32
+        padding: 1
+        stride: 2
+    - LeakyReLU:
+        inplace: true
+    - MaxPool2d:
+        kernel_size: 2
+        stride: 2
+    - Conv2d:
+        in_channels: 32
+        kernel_size: 3
+        out_channels: 64
+        padding: 1
+        stride: 2
+    - LeakyReLU:
+        inplace: true
+    - MaxPool2d:
+        kernel_size: 2
+        stride: 2
+    target:
+    - Linear:
+        in_features: 64
+        out_features: 1
+  optimizer:
+    AdamW:
+      lr: 0.0001
+      weight_decay: 0.0001
+  patience: 25
+  progress_bar: false
+  ridge_lambda: 0.1
+  scheduler:
+    CosineAnnealingLR:
+      T_max: 100
+  trainer_key: circe
+  zy_cov: true

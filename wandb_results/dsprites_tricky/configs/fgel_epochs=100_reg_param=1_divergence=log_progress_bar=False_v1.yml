@@ -1,0 +1,117 @@
+data:
+  batch_size: 1024
+  data_key: dsprites-nonlinear
+  distractor: position_x
+  nl_type: tricky
+  noise: 2
+  num_workers: 16
+  target: position_y
+  test: data/dsprites-dataset/dsprites_test.npz
+  test_ood: data/dsprites-dataset/dsprites_test.npz
+  train: data/dsprites-dataset/dsprites_train.npz
+  val: data/dsprites-dataset/dsprites_val.npz
+  val_ood: data/dsprites-dataset/dsprites_val.npz
+experiment:
+  description: regression w/ FGEL
+  load: null
+  output_location: results/dsprites_nonlinear/
+  resume: false
+model:
+  epochs: 100
+  model_key: regressor
+  modes:
+  - train
+  - val
+  - val_ood
+  - test
+  - test_ood
+  network:
+    fc1:
+    - Linear:
+        in_features: 256
+        out_features: 128
+    - LeakyReLU:
+        inplace: true
+    fc2:
+    - Linear:
+        in_features: 128
+        out_features: 64
+    featurizer:
+    - Conv2d:
+        in_channels: 1
+        kernel_size: 3
+        out_channels: 16
+        padding: 1
+        stride: 2
+    - LeakyReLU:
+        inplace: true
+    - Conv2d:
+        in_channels: 16
+        kernel_size: 3
+        out_channels: 32
+        padding: 1
+        stride: 2
+    - LeakyReLU:
+        inplace: true
+    - MaxPool2d:
+        kernel_size: 2
+        stride: 2
+    - Conv2d:
+        in_channels: 32
+        kernel_size: 3
+        out_channels: 64
+        padding: 1
+        stride: 2
+    - LeakyReLU:
+        inplace: true
+    - MaxPool2d:
+        kernel_size: 2
+        stride: 2
+    target:
+    - Linear:
+        in_features: 64
+        out_features: 1
+  patience: 25
+  trainer_config:
+    batch_size: false
+    burn_in_cycles: false
+    default: false
+    divergence: log
+    dual_func_network_kwargs:
+      activation: LeakyReLU
+      layer_widths:
+      - 50
+      - 20
+      normalized: false
+    dual_optim_args:
+      optimizer:
+        OAdam:
+          betas:
+          - 0.5
+          - 0.9
+          lr: 0.0001
+      scheduler:
+        CosineAnnealingLR:
+          T_max: 100
+    early_stopping: false
+    eval_freq: false
+    gpu: true
+    gradient_descent_ascent: true
+    max_no_improve: false
+    max_num_epochs: false
+    pretrain: false
+    pretrain_dual: false
+    progress_bar: false
+    reg_param: 1
+    reg_param_rkhs_norm: 0.0
+    theta_optim_args:
+      optimizer:
+        AdamW:
+          lr: 0.0001
+          weight_decay: 0.0001
+      scheduler:
+        CosineAnnealingLR:
+          T_max: 100
+    theta_reg_param: 0
+    val_loss_func: hsic
+  trainer_key: fgel
