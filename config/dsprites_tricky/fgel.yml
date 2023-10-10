@@ -29,11 +29,11 @@ model:
     - val_ood
     - test
     - test_ood
-  epochs: &num_epochs 200
+  epochs: &num_epochs 100
   patience: 25
 
   trainer_config:
-    reg_param: 1.0
+    reg_param: 10.0
     theta_reg_param: 0
     dual_func_network_kwargs:
       layer_widths:
@@ -44,7 +44,7 @@ model:
     theta_optim_args:
       optimizer:
         AdamW:
-          lr: 0.0001
+          lr: 0.00001
           weight_decay: 0.0001
       scheduler:
         CosineAnnealingLR:

@@ -1,5 +1,5 @@
 experiment:
-  description: regression w/ VMM
+  description: regression w/ FGEL
   output_location: results/yaleb_cone/
   load: null
   resume: false
@@ -20,7 +20,7 @@ data:
 
 model:
   model_key: regressor
-  trainer_key: vmm
+  trainer_key: fgel
   modes:
     - train
     - val
@@ -31,7 +31,7 @@ model:
   patience: 25
 
   trainer_config:
-    reg_param: 10.0
+    reg_param: 1.0
     theta_reg_param: 0
     dual_func_network_kwargs:
       layer_widths:
@@ -42,7 +42,7 @@ model:
     theta_optim_args:
       optimizer:
         AdamW:
-          lr: 0.001
+          lr: 0.0001
           weight_decay: 0.0001
       scheduler:
         CosineAnnealingLR:
@@ -50,7 +50,7 @@ model:
     dual_optim_args:
       optimizer:
         OAdam:
-          lr: 0.001
+          lr: 0.0001
           betas:
             - 0.5
             - 0.9
@@ -78,6 +78,7 @@ model:
     divergence: chi2
     reg_param_rkhs_norm: 0.0
     val_loss_func: hsic
+
 
   network:
     featurizer: resnet18
