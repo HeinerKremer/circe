@@ -31,6 +31,7 @@ model:
   patience: 25
 
   trainer_config:
+    version: 2
     reg_param: 10.0
     theta_reg_param: 0
     dual_func_network_kwargs:
@@ -69,15 +70,13 @@ model:
     # Following arguments are unused as batching/training is done in the wrapper class
     max_num_epochs: False
     batch_size: False
-    eval_freq: False
-    max_no_improve: False
-    burn_in_cycles: False
-    early_stopping: False
+    eval_freq: nan
+    patience: False
 
     # Unused arguments
     divergence: chi2
     reg_param_rkhs_norm: 0.0
-    val_loss_func: hsic
+    val_loss_func: null
 
   network:
     featurizer: resnet18

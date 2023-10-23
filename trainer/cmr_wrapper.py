@@ -20,14 +20,12 @@ class CMR(BaseTrainer):
         return self.estimator.theta_optimizer
 
     def _construct_estimator(self):
-        target_loss = None
         if self.model_cfg.model_key == 'regressor':
             def moment_function(y_pred, y_true):
                 return y_pred[1] - y_true
 
-            if self.model_cfg.trainer_config["theta_reg_param"] > 0:
-                def target_loss(y_pred, y_true):
-                    return torch.nn.functional.mse_loss(y_pred[1], y_true)
+            def target_loss(y_pred, y_true):
+                return torch.nn.functional.mse_loss(y_pred[1], y_true)
         elif self.model_cfg.model_key == 'classifier':
             raise NotImplementedError(
                 'Need to think how to implement CMR classification. E.g. psi(x,y)=(p_1,p_2) - (1, 0).')
@@ -37,9 +35,21 @@ class CMR(BaseTrainer):
         print('Model config: ', self.model_cfg.trainer_config)
         if not self.estimator_class:
             raise NotImplementedError('Need to specify CMR estimator class.')
+
         self.model_cfg.trainer_config['wandb'] = self.exp_cfg.wandb
-        estimator = self.estimator_class(model=self.model, moment_function=moment_function, val_loss_func=target_loss,
-                                         theta_regularizer=target_loss, **self.model_cfg.trainer_config)
+        self.model_cfg.trainer_config['val_loss_func'] = target_loss
+        self.model_cfg.trainer_config['batch_size'] = self.data_cfg.batch_size
+        self.model_cfg.trainer_config['num_workers'] = self.data_cfg.num_workers
+
+        if self.model_cfg.trainer_config["theta_reg_param"] > 0:
+            self.model_cfg.trainer_config['theta_regularizer'] = target_loss
+        else:
+            self.model_cfg.trainer_config['theta_regularizer'] = None
+
+        estimator = self.estimator_class(model=self.model,
+                                         datasets=self.datasets,
+                                         moment_function=moment_function,
+                                         **self.model_cfg.trainer_config)
         return estimator
 
     def _set_kernels(self):
@@ -52,7 +62,7 @@ class CMR(BaseTrainer):
         self.estimator._scheduler_step()
 
     def _epoch(self, epochID, mode):
-        self.estimator._epoch(epochID, mode)
+        return self.estimator._epoch(epochID, mode)
 
     # def _epoch(self, epochID, mode):
     #     '''

@@ -191,15 +191,17 @@ if __name__ == "__main__":
                 # 'learning_rates': [(1e-3, 1e-3), (1e-3, 1e-2)],  #[(1e-4, 1e-4), (1e-3, 1e-3), (1e-4, 1e-3)],
                 # 'weight_decay': [1e-2, 1e-4]
             }
+            hparams = {}
     elif 'fgel' in args.method:
         hparams = {
-            'config': {'epochs': [100]},
+            'config': {'epochs': [100],
+                       'patience': [100]},
             'trainer_config': {
                 "reg_param": [1, 10, 100],
                 "divergence": ['chi2', 'kl', 'log'],
                 # "theta_reg_param": [1e-6, 1e-3, 1],
                 "progress_bar": [False]},
-            'learning_rates': [(1e-5, 1e-5), (1e-4, 1e-4), (1e-5, 1e-4)],
+            'learning_rates': [(1e-5, 1e-5), (1e-5, 1e-4)],
         }
     elif args.method == "circe":
         # hparams = {

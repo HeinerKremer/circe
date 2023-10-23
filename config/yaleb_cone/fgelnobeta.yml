@@ -28,7 +28,7 @@ model:
     - test
     - test_ood
   epochs: &num_epochs 100
-  patience: 25
+  patience: 100
 
   trainer_config:
     reg_param: 1.0

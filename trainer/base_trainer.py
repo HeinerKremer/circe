@@ -18,7 +18,7 @@ class BaseTrainer(ABC):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.dataloaders = data.create_dataloaders(data_cfg, model_cfg.modes)
+        self.dataloaders, self.datasets = data.create_dataloaders(data_cfg, model_cfg.modes)
 
         self._set_kernels()  # goes first to correctly setup kernels
         self._get_yz_regressors()

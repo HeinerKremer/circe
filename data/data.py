@@ -41,6 +41,7 @@ class DataFactory(object):
 def create_dataloaders(data_cfg, modes):
     print('Loading data:')
     loaders = dict()
+    datasets = dict()
     for mode in modes:
         ds_args = {'path': eval("data_cfg.{}".format(mode))}
         ds_args.update(data_cfg.__dict__)
@@ -48,6 +49,7 @@ def create_dataloaders(data_cfg, modes):
         ds_args.update({'ood': ood})
         dataset = factory.create(data_cfg.data_key, **ds_args)
 
+        datasets[mode] = dataset
         shuffle = mode == 'train'
         drop_last = True
         print(f'{mode} : {ds_args["path"]}')
@@ -60,7 +62,7 @@ def create_dataloaders(data_cfg, modes):
             num_workers = min(data_cfg.num_workers, multiprocessing.cpu_count())
         )
     print('Data loading complete.')
-    return loaders
+    return loaders, datasets
 
 
 factory = DataFactory()
