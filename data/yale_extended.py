@@ -166,7 +166,7 @@ class YaleBExtended(Dataset):
         image = self._read_image(index)
 
         return {
-            'x': image,
+            't': image,
             'y': torch.FloatTensor(self.targets[index : index + 1]),
             'z': torch.FloatTensor(self.distractors[index : index + 1])
         }

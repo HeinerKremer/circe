@@ -20,13 +20,13 @@ class CMR(BaseTrainer):
         return self.estimator.theta_optimizer
 
     def _construct_estimator(self):
-        regularizer = None
+        target_loss = None
         if self.model_cfg.model_key == 'regressor':
             def moment_function(y_pred, y_true):
                 return y_pred[1] - y_true
 
             if self.model_cfg.trainer_config["theta_reg_param"] > 0:
-                def regularizer(y_pred, y_true):
+                def target_loss(y_pred, y_true):
                     return torch.nn.functional.mse_loss(y_pred[1], y_true)
         elif self.model_cfg.model_key == 'classifier':
             raise NotImplementedError(
@@ -37,8 +37,9 @@ class CMR(BaseTrainer):
         print('Model config: ', self.model_cfg.trainer_config)
         if not self.estimator_class:
             raise NotImplementedError('Need to specify CMR estimator class.')
-        estimator = self.estimator_class(model=self.model, moment_function=moment_function,
-                                         theta_regularizer=regularizer, **self.model_cfg.trainer_config)
+        self.model_cfg.trainer_config['wandb'] = self.exp_cfg.wandb
+        estimator = self.estimator_class(model=self.model, moment_function=moment_function, val_loss_func=target_loss,
+                                         theta_regularizer=target_loss, **self.model_cfg.trainer_config)
         return estimator
 
     def _set_kernels(self):
@@ -51,71 +52,50 @@ class CMR(BaseTrainer):
         self.estimator._scheduler_step()
 
     def _epoch(self, epochID, mode):
-        '''
-        Run a single epoch, aggregate losses & log to wandb.
-        '''
-        train = 'train' in mode
-        self.model.train() if train else self.model.eval()
+        self.estimator._epoch(epochID, mode)
 
-        all_losses = defaultdict(list)
-
-        data_iter = iter(self.dataloaders[mode])
-
-        if self.tqdm:
-            tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
-        else:
-            tqdm_iter = range(len(self.dataloaders[mode]))
-
-        for i in tqdm_iter:
-            batch = utils.dict_to_device(next(data_iter), self.device)
-            x, y, z = batch['x'], batch['y'], batch['z']
-
-            # For CMR estimators the optimization objective differs from the target objective
-            with torch.no_grad():
-                _, y_ = self.model(x)
-                if self.model_cfg.model_key == 'regressor':
-                    target_loss = F.mse_loss(y_, y)
-                    moment_norm = self.estimator._calc_val_moment_violation([x, y], z)
-                    # mmr = self.estimator._calc_val_mmr([x, y], z)
-                    # hsic = self.estimator._calc_val_hsic([x, y], z)
-                elif self.model_cfg.model_key == 'classifier':
-                    raise NotImplementedError('Classification not yet implemented.')
-                    # label = batch['label']
-                    # label[label > self.model_cfg.target_threshold] = 1
-                    # target_loss = F.nll_loss(y_, label)
-
-            if train:
-                cmr_obj = self.estimator._optimize_step_theta([x, y], z)
-            else:
-                obj_theta, _ = self.estimator.objective([x, y], z)
-                cmr_obj = float(obj_theta.detach().cpu().numpy())
-
-            if self.tqdm:
-                tqdm_iter.set_description("V: {} | Epoch: {} | {} | Obj: {:.4f} | Target Loss: {:.4f}".format(
-                    self.exp_cfg.version, epochID, mode, cmr_obj, target_loss.item()
-                ), refresh=True)
-
-            all_losses['target_loss'].append(target_loss.item())
-            # all_losses['moment_norm'].append(moment_norm)
-            all_losses['cmr_obj'].append(cmr_obj)
-
-        all_losses = utils.aggregate(all_losses)
-        if self.exp_cfg.wandb:
-            wandb_utils.log_epoch_summary(epochID, mode, all_losses)
-
-        return all_losses['target_loss']
+    # def _epoch(self, epochID, mode):
+    #     '''
+    #     Run a single epoch, aggregate losses & log to wandb.
+    #     '''
+    #     train = 'train' in mode
+    #     self.model.train() if train else self.model.eval()
+    #
+    #     all_losses = defaultdict(list)
+    #
+    #     data_iter = iter(self.dataloaders[mode])
+    #
+    #     if self.tqdm:
+    #         tqdm_iter = tqdm(range(len(self.dataloaders[mode])), dynamic_ncols=True)
+    #     else:
+    #         tqdm_iter = range(len(self.dataloaders[mode]))
+    #
+    #     for i in tqdm_iter:
+    #         batch = utils.dict_to_device(next(data_iter), self.device)
+    #         batch = {'t': batch['x'], 'y': batch['y'], 'z': batch['z']}
+    #
+    #         if train:
+    #             cmr_obj = self.estimator._train_step_model(batch)
+    #         else:
+    #             obj_theta, _ = self.estimator.objective(batch)
+    #             val_loss = self.estimator.calc_validation_metric(batch)
+    #             cmr_obj = float(obj_theta.detach().cpu().numpy())
+    #
+    #         if self.tqdm:
+    #             tqdm_iter.set_description("V: {} | Epoch: {} | {} | Obj: {:.4f} | Target Loss: {:.4f}".format(
+    #                 self.exp_cfg.version, epochID, mode, cmr_obj, val_loss
+    #             ), refresh=True)
+    #
+    #         all_losses['target_loss'].append(val_loss)
+    #         all_losses['objective'].append(cmr_obj)
+    #
+    #     all_losses = utils.aggregate(all_losses)
+    #     if self.exp_cfg.wandb:
+    #         wandb_utils.log_epoch_summary(epochID, mode, all_losses)
+    #
+    #     return all_losses['target_loss']
 
 
-# class CMRTrainerBuilder:
-#     def __init__(self):
-#         self._instance = None
-#
-#     def __call__(self, data_cfg, model_cfg, exp_cfg, **_ignored):
-#         if not self._instance:
-#             self._instance = CMR(data_cfg=data_cfg, model_cfg=model_cfg, exp_cfg=exp_cfg)
-#         return self._instance
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     import cmr
     print('hallo', cmr)
