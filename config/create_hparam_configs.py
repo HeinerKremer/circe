@@ -181,6 +181,7 @@ if __name__ == "__main__":
             'trainer_config': {
                 "progress_bar": [False]},
         }
+        hparams = {}
     elif 'fgel' in args.method:
         hparams = {
             'config': {'epochs': [100]},
