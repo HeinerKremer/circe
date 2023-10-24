@@ -7,6 +7,7 @@ from scipy.linalg import solve as scp_solve
 
 from trainer.base_trainer import BaseTrainer
 from utils import utils, losses, wandb_utils
+from cmr.utils.torch_utils import DictDataset
 
 
 class CMR(BaseTrainer):
@@ -36,8 +37,13 @@ class CMR(BaseTrainer):
 
         print('Model config: ', self.model_cfg.trainer_config)
         if not self.estimator_class:
-            raise NotImplementedError('Need to specify CMR estimator class.')
-        estimator = self.estimator_class(model=self.model, moment_function=moment_function,
+            raise NotImplementedError('Need to specify CMR estimator classg.')
+
+        # Required to set dimensions etc
+        batch = next(iter(self.dataloaders['train']))
+        batch = {'t': batch['x'], 'y': batch['y'], 'z': batch['z']}
+        datasets = {'train': DictDataset(batch)}
+        estimator = self.estimator_class(model=self.model, datasets=datasets, moment_function=moment_function,
                                          theta_regularizer=regularizer, **self.model_cfg.trainer_config)
         return estimator
 
@@ -69,13 +75,14 @@ class CMR(BaseTrainer):
         for i in tqdm_iter:
             batch = utils.dict_to_device(next(data_iter), self.device)
             x, y, z = batch['x'], batch['y'], batch['z']
+            batch = {'t': x, 'y': y, 'z': z}
 
             # For CMR estimators the optimization objective differs from the target objective
             with torch.no_grad():
                 _, y_ = self.model(x)
                 if self.model_cfg.model_key == 'regressor':
                     target_loss = F.mse_loss(y_, y)
-                    moment_norm = self.estimator._calc_val_moment_violation([x, y], z)
+                    # moment_norm = self.estimator._calc_val_moment_violation([x, y], z)
                     # mmr = self.estimator._calc_val_mmr([x, y], z)
                     # hsic = self.estimator._calc_val_hsic([x, y], z)
                 elif self.model_cfg.model_key == 'classifier':
@@ -85,9 +92,9 @@ class CMR(BaseTrainer):
                     # target_loss = F.nll_loss(y_, label)
 
             if train:
-                cmr_obj = self.estimator._optimize_step_theta([x, y], z)
+                cmr_obj = self.estimator._train_step_model(batch)
             else:
-                obj_theta, _ = self.estimator.objective([x, y], z)
+                obj_theta, _ = self.estimator.objective(batch)
                 cmr_obj = float(obj_theta.detach().cpu().numpy())
 
             if self.tqdm:
